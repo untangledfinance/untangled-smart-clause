@@ -1,0 +1,39 @@
+name: Staging CI
+
+on:
+  push:
+    branches:
+      - staging
+
+env:
+  BETA_REGISTRY: ${{ secrets.BETA_REGISTRY }}
+  BETA_CLAUSE_IMAGE: ${{ secrets.BETA_REGISTRY }}/smart-clause
+  BETA_DOCKER_USERNAME: ${{ secrets.BETA_DOCKER_USERNAME }}
+  BETA_DOCKER_PASSWORD: ${{ secrets.BETA_DOCKER_PASSWORD }}
+
+jobs:
+
+  publish:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Login
+        run: |
+          docker --version
+          echo $BETA_DOCKER_PASSWORD | docker login -u $BETA_DOCKER_USERNAME --password-stdin $BETA_REGISTRY
+
+      - name: Get short SHA
+        run: echo "::set-env name=SHA8::$(echo ${GITHUB_SHA} | cut -c1-8)"
+
+      - name: Build image
+        run: |
+          docker build -t $BETA_CLAUSE_IMAGE:$SHA8
+          docker push $BETA_CLAUSE_IMAGE:$SHA8
+
+      - name: Push image to Azure Container Registry
+        run: |
+          docker tag $BETA_CLAUSE_IMAGE:$SHA8 $BETA_CLAUSE_IMAGE
+          docker push $BETA_CLAUSE_IMAGE

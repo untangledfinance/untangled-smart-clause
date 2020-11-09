@@ -1,0 +1,12 @@
+version: "3.7"
+services:
+  smart-clause:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: unt-smart-clause
+    ports:
+      - "8080:80"
+    volumes:
+      - ./clause:/home/site/wwwroot
+    image: untangled.azurecr.io/smart-clause

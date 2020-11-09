@@ -1,0 +1,9 @@
+{
+  "name": "untangled-smart-clause",
+  "version": "0.0.1",
+  "scripts": {
+    "test": "echo \"No tests yet...\""
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}
