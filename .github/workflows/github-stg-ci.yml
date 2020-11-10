@@ -5,35 +5,43 @@ on:
     branches:
       - staging
 
+# CONFIGURATION
+# For help, go to https://github.com/Azure/Actions
+#
+# 1. Set up the following secrets in your repository:
+#   AZURE_FUNCTIONAPP_PUBLISH_PROFILE
+#
+# 2. Change these variables for your configuration:
 env:
-  BETA_REGISTRY: ${{ secrets.BETA_REGISTRY }}
-  BETA_CLAUSE_IMAGE: ${{ secrets.BETA_REGISTRY }}/smart-clause
-  BETA_DOCKER_USERNAME: ${{ secrets.BETA_DOCKER_USERNAME }}
-  BETA_DOCKER_PASSWORD: ${{ secrets.BETA_DOCKER_PASSWORD }}
+  AZURE_FUNCTIONAPP_NAME: smart-clause
+  AZURE_FUNCTIONAPP_PACKAGE_PATH: './clause'
+  NODE_VERSION: '12.x'
 
 jobs:
 
-  publish:
+  build-and-deploy:
 
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
 
-      - name: Login
-        run: |
-          docker --version
-          echo $BETA_DOCKER_PASSWORD | docker login -u $BETA_DOCKER_USERNAME --password-stdin $BETA_REGISTRY
+      - name: Setup Node ${{ env.NODE_VERSION }} Environment
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
-      - name: Get short SHA
-        run: echo "SHA8=$(echo ${GITHUB_SHA} | cut -c1-8)" >> $GITHUB_ENV
-
-      - name: Build image
+      - name: 'Resolve Project Dependencies Using Npm'
+        shell: bash
         run: |
-          docker build -t $BETA_CLAUSE_IMAGE:$SHA8 -f Dockerfile ./clause
-          docker push $BETA_CLAUSE_IMAGE:$SHA8
+          pushd './${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}'
+          npm install
+          popd
 
-      - name: Push image to Azure Container Registry
-        run: |
-          docker tag $BETA_CLAUSE_IMAGE:$SHA8 $BETA_CLAUSE_IMAGE
-          docker push $BETA_CLAUSE_IMAGE
+      - name: 'Run Azure Functions Action'
+        uses: Azure/functions-action@v1
+        id: fa
+        with:
+          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
+          package: ${{ env.AZURE_FUNCTIONAPP_PACKAGE_PATH }}
+          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
