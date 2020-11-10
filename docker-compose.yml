@@ -2,8 +2,8 @@ version: "3.7"
 services:
   smart-clause:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./clause
+      dockerfile: ../Dockerfile
     container_name: unt-smart-clause
     ports:
       - "8080:80"
