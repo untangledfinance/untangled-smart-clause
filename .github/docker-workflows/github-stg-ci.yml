@@ -30,7 +30,7 @@ jobs:
 
       - name: Build image
         run: |
-          docker build -t $BETA_CLAUSE_IMAGE:$SHA8 .
+          docker build -t $BETA_CLAUSE_IMAGE:$SHA8 /clause
           docker push $BETA_CLAUSE_IMAGE:$SHA8
 
       - name: Push image to Azure Container Registry
